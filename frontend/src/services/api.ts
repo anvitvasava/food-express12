@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : '/api';
 
 // Simple API wrapper
 async function request(path: string, options: RequestInit = {}) {
