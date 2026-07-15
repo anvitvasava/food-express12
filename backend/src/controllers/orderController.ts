@@ -45,7 +45,7 @@ const runOrderSimulation = (orderId: string) => {
         const point = riderPathPoints[pathIdx];
         const deliveryPartner = {
           name: 'Rajesh Kumar',
-          phone: '+919876500112',
+          phone: '123456789',
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop',
           ...point
         };
@@ -72,7 +72,7 @@ const runOrderSimulation = (orderId: string) => {
       if (nextStatus === 'picked_up' || nextStatus === 'on_the_way') {
         updateFields.deliveryPartner = {
           name: 'Rajesh Kumar',
-          phone: '+919876500112',
+          phone: '123456789',
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop',
           lat: riderPathPoints[0].lat,
           lng: riderPathPoints[0].lng

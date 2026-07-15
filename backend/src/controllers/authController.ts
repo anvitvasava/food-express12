@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 import { db, User } from '../db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'foodexpress_super_secret_key_123';
@@ -187,4 +188,85 @@ export const getCurrentUser = async (req: any, res: Response) => {
     role: user.role,
     favorites: user.favorites
   });
+};
+
+export const googleLogin = async (req: Request, res: Response) => {
+  try {
+    const { code } = req.body;
+    if (!code) {
+      return res.status(400).json({ error: 'Auth code is required from client.' });
+    }
+
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      return res.status(500).json({ error: 'Google Client ID or Client Secret is not configured on the backend server.' });
+    }
+
+    // 1. Exchange auth code for tokens with Google
+    const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: 'postmessage',
+      grant_type: 'authorization_code'
+    });
+
+    const { access_token } = tokenResponse.data;
+
+    // 2. Retrieve user details using access_token
+    const userResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: {
+        Authorization: `Bearer ${access_token}`
+      }
+    });
+
+    const { email, name, picture } = userResponse.data;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Google account does not expose a valid email address.' });
+    }
+
+    // 3. Check if user exists
+    const users = await db.getUsers();
+    let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+    if (!user) {
+      // Create user automatically
+      const passwordHash = await bcrypt.hash(uuidv4(), 10); // Hash a random password for OAuth signups
+      user = {
+        id: `user-${uuidv4().substring(0, 8)}`,
+        name: name || `Google User`,
+        email: email.toLowerCase(),
+        phone: `google-${uuidv4().substring(0, 8)}`, // Fallback unique ID for phone
+        passwordHash,
+        addresses: [],
+        paymentMethods: [],
+        favorites: { restaurants: [], dishes: [] },
+        role: 'customer',
+        createdAt: new Date().toISOString()
+      };
+      await db.addUser(user);
+    }
+
+    // 4. Generate local JWT
+    const token = generateToken(user);
+    res.json({
+      message: 'Google login successful!',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        addresses: user.addresses,
+        role: user.role,
+        favorites: user.favorites
+      }
+    });
+  } catch (err: any) {
+    console.error('Google OAuth Error:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Failed to verify Google authentication: ' + (err.response?.data?.error_description || err.message) });
+  }
 };

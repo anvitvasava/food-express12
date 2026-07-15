@@ -11,7 +11,8 @@ export const getRestaurants = async (req: any, res: Response) => {
       list = list.filter(r => 
         r.name.toLowerCase().includes(q) || 
         r.description.toLowerCase().includes(q) ||
-        r.categories.some(c => c.toLowerCase().includes(q))
+        r.categories.some(c => c.toLowerCase().includes(q)) ||
+        (r.menu && r.menu.some(m => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q)))
       );
     }
 

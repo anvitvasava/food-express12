@@ -15,7 +15,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.22.2",
-    "socket.io-client": "^4.7.5"
+    "socket.io-client": "^4.7.5",
+    "@react-oauth/google": "^0.12.1"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

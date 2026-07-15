@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -30,12 +30,21 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Synchronize layout search query input with URL parameter
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchVal = params.get('search') || '';
+    setSearchQuery(searchVal);
+  }, [location.search]);
+
   const cartCount = cartItems.reduce((acc, ci) => acc + ci.quantity, 0);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/home?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate('/home');
     }
   };
 

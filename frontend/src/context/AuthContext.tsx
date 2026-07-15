@@ -25,6 +25,7 @@ interface AuthContextType {
   addAddress: (title: string, addressLine: string, instructions?: string) => Promise<void>;
   deleteAddress: (id: string) => Promise<void>;
   toggleFavorite: (type: 'restaurant' | 'dish', id: string) => Promise<void>;
+  loginWithGoogle: (code: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -101,6 +102,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await api.requestOtp(phone);
   };
 
+  const loginWithGoogle = async (code: string) => {
+    const data = await api.googleLogin(code);
+    localStorage.setItem('token', data.token);
+    setToken(data.token);
+    setUser(data.user);
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -142,7 +150,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toggleTheme,
       addAddress,
       deleteAddress,
-      toggleFavorite
+      toggleFavorite,
+      loginWithGoogle
     }}>
       {children}
     </AuthContext.Provider>

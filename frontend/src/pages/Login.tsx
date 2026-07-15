@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { Mail, Lock, Phone, Eye, EyeOff, ShieldCheck, Chrome } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useGoogleLogin } from '@react-oauth/google';
 
 export const Login: React.FC = () => {
-  const { login, loginWithOtp, requestOtp } = useAuth();
+  const { login, loginWithOtp, requestOtp, loginWithGoogle } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -85,6 +86,31 @@ export const Login: React.FC = () => {
       window.location.href = '/home';
     }, 1200);
   };
+
+  const handleGoogleSuccess = async (authResult: any) => {
+    try {
+      if (authResult['code']) {
+        setLoading(true);
+        await loginWithGoogle(authResult['code']);
+        showToast('Logged in with Google successfully!', 'success');
+        navigate('/home');
+      } else {
+        throw new Error('No authorization code returned from Google.');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Google Login failed.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleGoogleLogin = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => {
+      showToast('Google Sign-In failed.', 'error');
+    },
+    flow: 'auth-code',
+  });
 
   return (
     <div className="max-w-md mx-auto my-12 p-8 rounded-2xl glass-premium shadow-2xl relative overflow-hidden">
@@ -248,8 +274,9 @@ export const Login: React.FC = () => {
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Or Sign In With</p>
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => handleSocialMock('Google')}
-            className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl text-sm font-semibold transition-colors text-slate-700 dark:text-slate-300"
+            onClick={() => handleGoogleGoogleLogin()}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl text-sm font-semibold transition-colors text-slate-700 dark:text-slate-300 disabled:opacity-50"
           >
             <Chrome className="w-4.5 h-4.5 text-red-500" /> Google
           </button>

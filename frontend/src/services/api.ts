@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : '/api';
 
 // Simple API wrapper
 async function request(path: string, options: RequestInit = {}) {
@@ -32,6 +34,8 @@ export const api = {
   requestOtp: (phone: string) => request('/auth/otp/request', { method: 'POST', body: JSON.stringify({ phone }) }),
   verifyOtp: (phone: string, otp: string) => request('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ phone, otp }) }),
   getMe: () => request('/auth/me'),
+  googleLogin: (code: string) => request('/auth/google', { method: 'POST', body: JSON.stringify({ code }) }),
+
 
   // Restaurants
   getRestaurants: (params: { search?: string; category?: string; vegOnly?: boolean; sortBy?: string } = {}) => {

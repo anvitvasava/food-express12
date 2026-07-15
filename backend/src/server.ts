@@ -73,6 +73,7 @@ app.post('/api/auth/register', authController.register);
 app.post('/api/auth/login', authController.login);
 app.post('/api/auth/otp/request', authController.requestOTP);
 app.post('/api/auth/otp/verify', authController.verifyOTP);
+app.post('/api/auth/google', authController.googleLogin);
 app.get('/api/auth/me', authenticateJWT as any, authController.getCurrentUser);
 
 // 2. Restaurants & Wishlist

@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import { User, Mail, Phone, Lock, MapPin } from 'lucide-react';
+import { User, Mail, Phone, Lock, MapPin, Chrome } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
 
 export const Signup: React.FC = () => {
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -41,6 +42,32 @@ export const Signup: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleGoogleSuccess = async (authResult: any) => {
+    try {
+      if (authResult['code']) {
+        setLoading(true);
+        await loginWithGoogle(authResult['code']);
+        showToast('Registered and logged in with Google successfully!', 'success');
+        navigate('/home');
+      } else {
+        throw new Error('No authorization code returned from Google.');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Google signup failed.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleGoogleLogin = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => {
+      showToast('Google registration failed.', 'error');
+    },
+    flow: 'auth-code',
+  });
+
 
   return (
     <div className="max-w-md mx-auto my-6 p-8 rounded-2xl glass-premium shadow-2xl relative overflow-hidden">
@@ -172,9 +199,30 @@ export const Signup: React.FC = () => {
         </button>
       </form>
 
+      {/* Social Logins */}
+      <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800/80 relative z-10 text-center">
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Or Sign Up With</p>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => handleGoogleGoogleLogin()}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl text-sm font-semibold transition-colors text-slate-700 dark:text-slate-300 disabled:opacity-50"
+          >
+            <Chrome className="w-4.5 h-4.5 text-red-500" /> Google
+          </button>
+          <button
+            onClick={() => showToast('Apple login simulation clicked.', 'info')}
+            className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl text-sm font-semibold transition-colors text-slate-700 dark:text-slate-300"
+          >
+            <span className="text-base">🍎</span> Apple
+          </button>
+        </div>
+      </div>
+
       <div className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400 relative z-10">
         Already have an account? <Link to="/login" className="text-brand font-semibold hover:underline">Log In</Link>
       </div>
+
     </div>
   );
 };

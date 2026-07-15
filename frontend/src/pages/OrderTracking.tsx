@@ -61,7 +61,8 @@ export const OrderTracking: React.FC = () => {
     fetchOrder();
 
     // 2. Setup Socket.io Connection
-    socketRef.current = io('http://localhost:5000');
+    const socketUrl = window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin;
+    socketRef.current = io(socketUrl);
     
     socketRef.current.emit('join_order', id);
 
@@ -168,7 +169,7 @@ export const OrderTracking: React.FC = () => {
   };
 
   const handleCallDriver = () => {
-    showToast(`Calling rider Rajesh Kumar at +91 98765 00112...`, 'info');
+    showToast(`Calling rider ${order?.deliveryPartner?.name || 'Rajesh Kumar'} at ${order?.deliveryPartner?.phone || '123456789'}...`, 'info');
   };
 
   if (loading) {
